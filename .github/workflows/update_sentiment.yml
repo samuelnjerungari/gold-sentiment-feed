@@ -1,0 +1,33 @@
+name: Update Gold Sentiment
+
+on:
+  schedule:
+    - cron: '* * * * *'  # Every minute
+  workflow_dispatch:  # Manual trigger button
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install feedparser vaderSentiment yfinance requests pandas
+      
+      - name: Run sentiment analyzer
+        run: python update_sentiment.py
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add market_context.csv
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update sentiment: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" && git push)
